@@ -13,7 +13,7 @@ function App() {
 
   const user = useAppSelector ((state) => state.user);
   // const user = null;
-  // console.log(user);
+  console.log(user);
 
   const dispatch = useAppDispatch();
 
