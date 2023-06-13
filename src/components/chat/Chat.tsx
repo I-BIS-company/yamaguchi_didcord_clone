@@ -7,7 +7,7 @@ import GifIcon from '@mui/icons-material/Gif';
 import EmojiEmotionsIcon from '@mui/icons-material/EmojiEmotions';
 import ChatMessage from './ChatMessage';
 import { useAppSelector } from '../../app/hooks';
-import { CollectionReference, DocumentData, DocumentReference, Timestamp, addDoc, collection, onSnapshot, serverTimestamp } from 'firebase/firestore';
+import { CollectionReference, DocumentData, DocumentReference, Timestamp, addDoc, collection, onSnapshot, orderBy, query, serverTimestamp } from 'firebase/firestore';
 import { db } from '../../firebase';
 
 interface Messages {
@@ -40,7 +40,12 @@ const Chat = () => {
             "messages"
         );
 
-        onSnapshot(collectionRef, (snapshot) => {
+        const collectionRefoderBy = query(
+            collectionRef, 
+            orderBy("timestamp", "desc")
+            );
+
+        onSnapshot(collectionRefoderBy, (snapshot) => {
             let results: Messages[] = [];
             snapshot.docs.forEach((doc) => {
                 results.push({
@@ -50,7 +55,7 @@ const Chat = () => {
                 });
             });
             setMessages(results);
-            console.log(results);
+            // console.log(results);
         });
     }, [channelId]);
 
@@ -76,6 +81,7 @@ const Chat = () => {
                     }
                 );
                 console.log(docRef);
+                setInputText("");
         };
 
   return (
@@ -104,6 +110,7 @@ const Chat = () => {
                  onChange={(e: React.ChangeEvent<HTMLInputElement>) => 
                     setInputText(e.target.value) 
                     } 
+                    value={inputText}
                     />
                 <button type='submit' className='chatInputButton' 
                 onClick={(e: React.MouseEvent<HTMLButtonElement, MouseEvent>) => 
