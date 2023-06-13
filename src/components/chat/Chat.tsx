@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import "./Chat.scss";
 import ChatHeader from './ChatHeader';
 import AddCircleOutlineIcon from '@mui/icons-material/AddCircleOutline';
@@ -7,11 +7,23 @@ import GifIcon from '@mui/icons-material/Gif';
 import EmojiEmotionsIcon from '@mui/icons-material/EmojiEmotions';
 import ChatMessage from './ChatMessage';
 import { useAppSelector } from '../../app/hooks';
-import { CollectionReference, DocumentData, DocumentReference, addDoc, collection, serverTimestamp } from 'firebase/firestore';
+import { CollectionReference, DocumentData, DocumentReference, Timestamp, addDoc, collection, onSnapshot, serverTimestamp } from 'firebase/firestore';
 import { db } from '../../firebase';
+
+interface Messages {
+    timestamp: Timestamp;
+    message: string;
+    user: {
+        uid: string,
+        photo: string,
+        email: string,
+        displayName: string,
+    };
+};
 
 const Chat = () => {
     const [inputText, setInputText] = useState<string>("");
+    const [messages, setMessages] = useState<Messages[]>([]);
 
     const channelName = useAppSelector((state) => state.channel.channelName);
     const channelId = useAppSelector((state) => state.channel.channelId);
@@ -19,7 +31,28 @@ const Chat = () => {
     // console.log(channelName);
 
 
-    
+    useEffect(() => {
+
+        let collectionRef = collection(
+            db,
+            "channels",
+            String(channelId),
+            "messages"
+        );
+
+        onSnapshot(collectionRef, (snapshot) => {
+            let results: Messages[] = [];
+            snapshot.docs.forEach((doc) => {
+                results.push({
+                    timestamp: doc.data().timestamp,
+                    message: doc.data().message,
+                    user: doc.data().user,
+                });
+            });
+            setMessages(results);
+            console.log(results);
+        });
+    }, [channelId]);
 
     const sendMessage = async (
         e: React.MouseEvent<HTMLButtonElement, MouseEvent>
