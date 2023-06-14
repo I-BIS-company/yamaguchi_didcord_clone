@@ -9,55 +9,20 @@ import ChatMessage from './ChatMessage';
 import { useAppSelector } from '../../app/hooks';
 import { CollectionReference, DocumentData, DocumentReference, Timestamp, addDoc, collection, onSnapshot, orderBy, query, serverTimestamp } from 'firebase/firestore';
 import { db } from '../../firebase';
+import useSubCollection from '../../hooks/useSubCollection';
 
-interface Messages {
-    timestamp: Timestamp;
-    message: string;
-    user: {
-        uid: string,
-        photo: string,
-        email: string,
-        displayName: string,
-    };
-};
+
 
 const Chat = () => {
     const [inputText, setInputText] = useState<string>("");
-    const [messages, setMessages] = useState<Messages[]>([]);
-
-    const channelName = useAppSelector((state) => state.channel.channelName);
     const channelId = useAppSelector((state) => state.channel.channelId);
+    const channelName = useAppSelector((state) => state.channel.channelName);
     const user = useAppSelector((state) => state.user.user);
+    const { subDocuments: messages } = useSubCollection("channels", "messages");
     // console.log(channelName);
 
 
-    useEffect(() => {
 
-        let collectionRef = collection(
-            db,
-            "channels",
-            String(channelId),
-            "messages"
-        );
-
-        const collectionRefoderBy = query(
-            collectionRef, 
-            orderBy("timestamp", "desc")
-            );
-
-        onSnapshot(collectionRefoderBy, (snapshot) => {
-            let results: Messages[] = [];
-            snapshot.docs.forEach((doc) => {
-                results.push({
-                    timestamp: doc.data().timestamp,
-                    message: doc.data().message,
-                    user: doc.data().user,
-                });
-            });
-            setMessages(results);
-            // console.log(results);
-        });
-    }, [channelId]);
 
     const sendMessage = async (
         e: React.MouseEvent<HTMLButtonElement, MouseEvent>
